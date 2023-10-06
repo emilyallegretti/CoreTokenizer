@@ -1,0 +1,10 @@
+FOO
+BAR 
+(
+)
+[
+@
+int 
+end
+read
+write if while 
