@@ -1,7 +1,0 @@
-program
-begin;
-int FOO = 5554
-HellO
-&&
-||
-end

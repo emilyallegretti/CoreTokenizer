@@ -1,0 +1,82 @@
+TOKENIZER DOCUMENTATION
+This file contains a description of the tokenizer's design, a user manual on how it is used, and a description of the testing process.
+
+*** DESIGN ***
+High-level design: 
+The Core Tokenizer is implemented by the Scanner class in this project (Scanner.py). It scans an input text file and 'tokenizes' it line-by-line into
+an internal array of tokens using the DFA of valid Core tokens. It then sets a cursor pointing to the first index of the tokens array, which can be moved forward with
+the skipToken() method (described below). 
+
+Every valid Core token type is associated with a unique number, which is represented by enum class Token.py. The Scanner works by adding 
+the Enum value associated with every token into its internal array, including invalid tokens which is represented by Token.INVALID or the number 34.
+
+It must be noted that Scanner will tokenize an input file line-by-line, and as-needed. It does not tokenize the entire file at once into 
+its internal array. It tokenizes the first line of the file upon instantiation, and will only tokenize the next line when
+skipToken() is called by the user which causes the cursor to be moved beyond the end of the tokens array (unless the end of the file has been reached,
+in which case no more lines will be scanned).
+
+INSTANCE VARIABLES: 
+input: the input file that is being scanned.
+_tokens: the internal array of tokens that have been read in from the input file by the Scanner instance.
+_cursor: the internal index pointer that will be used to access values of _tokens. This represents the 'current' token, i.e. the token that 
+will be returned by getToken().
+_actual_values: this is a dictionary that will hold the values of any integers and identifier tokens found in the program. Since
+all integers and identifiers are represented by a generic token number, 31 and 32 respectively, their respective numeric or string values are
+not known by the _tokens array. _actual_values solves this problem by storing the index of the token in _tokens as a key, and its actual value
+as the value. 
+
+METHODS:
+
+Constructor: 
+Parameters: filename
+Where 'filename' is the name of the file to be tokenized. If the filename is not valid, the program will print an error message and exit. 
+The constructor will instantiate _tokens to an empty array, set _cursor to 0 (the first index of _tokens) (tokens will be guaranteed to have
+at least one token, since even an empty file will generate the EOF token), instantiate _actual_values to an empty dictionary, and finally
+call tokenizeLine() to scan the first line of the input file.
+
+tokenizeLine(): 
+This method reads a line from the input file and iterates character-by-character through the string, using a 'greedy tokenizing' method to convert 
+character strings into tokens and add them to _tokens based on the Core DFA. 
+If an invalid token is encountered, this method appends 34 (INVALID) to the end of the tokens array and immediately stops scanning.
+If an empty string is encountered (meaning EOF has been reached), this method appends 33 to the end of the tokens array and immediately stops scanning.
+If a line consisting of entirely whitespace is encountered, this method will continuously skip lines until a line containing at least one non-whitespace character is encountered. 
+
+getToken():
+This method will return the 'current' token being pointed to by _cursor, this will be 
+a number between 1 and 34 that corresponds to the type of Core token being pointed to. The type of token that corresponds to each number is described
+by the Token.py Enum class. 
+
+skipToken():
+This method will increment _cursor by 1 so that it points to the next token in _tokens.
+If the cursor advances beyond the length of _tokens, and the current token is not an EOF or invalid token, this method will call
+tokenizeLine() which will in turn scan the next line in the input file and store it in _tokens. Thus, the cursor will be pointing at the 
+first token parsed in by that next line.
+
+intVal():
+If _cursor currently points to 31 (an integer token) in _tokens, this method will return the numeric value of the identifier. If _cursor does not 
+point to an integer token, the program will terminate with an error message. 
+
+idName():
+If _cursor currently points to 32 (an identifier token) in _tokens, this method will return the string value of the identifier. If _cursor
+does not point to an identifier token, the program will terminate with an error message.
+
+
+*** USER MANUAL ***
+To use the Core Tokenizer, an instance of the Scanner class must be created, passing in the input file
+to be tokenized. Constructing the object will tokenize the first line of the file into the internal buffer, so that tokens can immediately be accessed upon instantiation.
+
+To get the 'current' token in the buffer (which starts as the first token), the user can call Scanner.getToken() to return the current token. This
+will not advance the cursor to the next token.
+
+To advance the cursor to the 'next' token in the buffer, the user must call skipToken().
+
+So, a common way of iterating through the buffer of tokens is by repeatdly calling getToken() followed by skipToken() until an end-of-file or 
+invalid token is reached, in which case the program will terminate.
+
+*** TESTING ***
+Several errors and bugs were found while testing the completed program. One of the most significant bugs included the case of special characters
+that existed by themselves as well as with an equals sign: <=, >=, ==, and !=. An extra token was being added on for the '=' character after each of 
+these tokens were appended to _tokens.
+
+These issues were solved by adding print() statements throughout the Scanner class to trace through the tokenizeLine() method and check
+the values of variables at various points in the method. By doing so, issues were able to be isolated to a single block of code.

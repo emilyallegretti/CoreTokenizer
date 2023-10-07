@@ -6,8 +6,13 @@ from Token import *
 class Scanner:
     # Constructor.
     def __init__(self, filename): 
-        # open file and tokenize line-by-line into tokens
-        self.input = open(filename, 'r')
+        # open file and tokenize line-by-line into tokens.
+        # if file is not found, gracefully exit
+        try: 
+            self.input = open(filename, 'r')
+        except FileNotFoundError as e:
+           print(f"{e}.\nAborting program...")
+           exit(1)
         self._tokens = []
         # initialize cursor to first token index
         self._cursor = 0
@@ -51,12 +56,11 @@ class Scanner:
               # check if current character is a letter (not a special character)--if so, this is an illegal token and scanner should stop reading.
                if i<len(line) and line[i].isalpha():
                   self._tokens.append(Token.INVALID)
-                  
                   break
             # if we've gotten to this point, digitString is a legal string of decimal digits
             # add its numeric value to actual_values and update tokens array
                self._tokens.append(Token.NUMBER)
-               self.actual_values[len(self._tokens)-1] = int(digitString)      
+               self.actual_values[len(self._tokens)-1] = digitString    
 
         # IDENTIFIERS
             elif currChar.isupper():
@@ -67,10 +71,9 @@ class Scanner:
                while (i < len(line)) and (line[i].isdigit() or line[i].isupper()):
                   idString = idString+line[i]
                   i = i+1
-               # check if current character is a lowercase letter (not a special character)--if so, this is an illegal token and scanner should stop reading.
+               # check if current character is a lowercase letter (not a special character or whitespace)--if so, this is an illegal token and scanner should stop reading.
                if i < len(line) and line[i].islower():
                   self._tokens.append(Token.INVALID)
-                  
                   break
                # if we've gotten to this point, idString is a legal identifier
                # add its string value to actual_values and update tokens array
@@ -78,9 +81,11 @@ class Scanner:
                self.actual_values[len(self._tokens) - 1] = idString
 
         # SPECIAL CHARACTERS
+        # for each special character found, add its token to tokens array
             elif currChar==";":
                self._tokens.append(Token.SEMICOLON)
                i=i+1
+               
 
             elif currChar==",":
                self._tokens.append(Token.COMMA)
@@ -175,6 +180,7 @@ class Scanner:
             # program
             elif currChar == "p":
                # check to see if rest of characters make up 'program', otherwise we have an illegal token
+               # there also must be a whitespace after the end of the word, otherwise this is an illegal token
                substring='rogram'
                i=i+1
                for letter in substring:
@@ -186,12 +192,18 @@ class Scanner:
                 # break out of outer loop if 'program' wasn't found, otherwise add program token to array
                if (len(self._tokens) > 0) and (self._tokens[-1]==Token.INVALID):
                   break
+               # make sure next token is either a whitespace or end of line, otherwise token is invalid
                else: 
-                  self._tokens.append(Token.PROGRAM)
+                  if i == len(line) or not (line[i].isalnum()):
+                    self._tokens.append(Token.PROGRAM)
+                  else:
+                    self._tokens.append(Token.INVALID)
+                    break
 
              # begin
             elif currChar == "b":
                # check to see if rest of characters make up 'begin', otherwise we have an illegal token
+                # there also must be a whitespace after the end of the word, otherwise this is an illegal token
                i=i+1
                substring='egin'
                for letter in substring:
@@ -203,12 +215,18 @@ class Scanner:
                 # break out of outer loop if 'begin' wasn't found, otherwise add begin token to array
                if len(self._tokens) > 0 and self._tokens[-1]==Token.INVALID:
                   break
-               else: 
-                  self._tokens.append(Token.BEGIN)
+               # make sure next token is either a whitespace or end of line, otherwise token is invalid
+               else:
+                  if i == len(line) or not (line[i].isalnum()):
+                    self._tokens.append(Token.BEGIN)
+                  else:
+                    self._tokens.append(Token.INVALID)
+                    break
 
              # then
             elif currChar == "t":
                # check to see if rest of characters make up 'then', otherwise we have an illegal token
+                # there also must be a whitespace after the end of the word, otherwise this is an illegal token
                i=i+1
                substring='hen'
                for letter in substring:
@@ -221,17 +239,22 @@ class Scanner:
                 # break out of outer loop if 'then' wasn't found, otherwise add then token to array
                if len(self._tokens) > 0 and self._tokens[-1]==Token.INVALID:
                   break
-               else: 
-                  self._tokens.append(Token.THEN)
+               # make sure next token is either a whitespace or end of line, otherwise token is invalid
+               else:
+                  if i == len(line) or not (line[i].isalnum()):
+                    self._tokens.append(Token.THEN)
+                  else:
+                    self._tokens.append(Token.INVALID)
+                    break
 
              # loop
             elif currChar == "l":
                # check to see if rest of characters make up 'loop', otherwise we have an illegal token
+                # there also must be a whitespace after the end of the word, otherwise this is an illegal token
                i=i+1
                substring='oop'
                for letter in substring:
                   if i==len(line) or line[i] != letter:
-                     
                      self._tokens.append(Token.INVALID)
                      break
                   else:
@@ -239,12 +262,18 @@ class Scanner:
                 # break out of outer loop if 'loop' wasn't found, otherwise add loop token to array
                if len(self._tokens) > 0 and self._tokens[-1]==Token.INVALID:
                   break
-               else: 
-                  self._tokens.append(Token.LOOP)
+               # make sure next token is either a whitespace or end of line, otherwise token is invalid
+               else:
+                  if i == len(line) or not (line[i].isalnum()):
+                    self._tokens.append(Token.LOOP)
+                  else:
+                    self._tokens.append(Token.INVALID)
+                    break
 
              # read
             elif currChar == "r":
                # check to see if rest of characters make up 'read', otherwise we have an illegal token
+                # there also must be a whitespace after the end of the word, otherwise this is an illegal token
                i=i+1
                substring='ead'
                for letter in substring:
@@ -257,8 +286,13 @@ class Scanner:
                 # break out of outer loop if 'read' wasn't found, otherwise add read token to array
                if len(self._tokens) > 0 and self._tokens[-1] == Token.INVALID:
                   break
-               else: 
-                  self._tokens.append(Token.READ)
+               # make sure next token is either a whitespace,special character or end of line, otherwise token is invalid
+               else:
+                  if i == len(line) or not(line[i].isalnum()):
+                    self._tokens.append(Token.READ)
+                  else:
+                    self._tokens.append(Token.INVALID)
+                    break
 
             # write, while 
             elif currChar == "w":
@@ -270,7 +304,6 @@ class Scanner:
                   substring="hile"
                   for letter in substring:
                     if i == len(line) or line[i] != letter:
-                        
                         self._tokens.append(Token.INVALID)
                         break
                     else: 
@@ -278,13 +311,17 @@ class Scanner:
                 # break out of outer loop if 'while' wasn't found, otherwise add while token to array
                   if len(self._tokens) > 0 and self._tokens[-1] == Token.INVALID:
                      break
+                  # make sure next token is either a whitespace or end of line, otherwise token is invalid
                   else:
-                     self._tokens.append(Token.WHILE)
+                    if i == len(line) or not (line[i].isalnum()):
+                        self._tokens.append(Token.WHILE)
+                    else:
+                        self._tokens.append(Token.INVALID)
+                        break
                elif i<len(line) and line[i]=="r":
                   substring = "rite"
                   for letter in substring:
                     if i == len(line) or line[i] != letter:
-                        
                         self._tokens.append(Token.INVALID)
                         break
                     else:
@@ -292,10 +329,14 @@ class Scanner:
                   # break out of outer loop if 'write' wasn't found, otherwise add write token to array
                   if len(self._tokens) > 0 and self._tokens[-1] == Token.INVALID:
                      break
+                  # make sure next token is either a whitespace or end of line, otherwise token is invalid
                   else:
-                     self._tokens.append(Token.WRITE)
+                    if i == len(line) or not (line[i].isalnum()):
+                        self._tokens.append(Token.WRITE)
+                    else:
+                        self._tokens.append(Token.INVALID)
+                        break
                else:
-                  print(self._error)
                   self._tokens.append(Token.INVALID)
                   break
 
@@ -306,16 +347,42 @@ class Scanner:
                # otherwise, we have an illegal token.
                i = i+1
                if i<len(line) and line[i] == "n":
-                  i=i+1
-                  if i<len(line) and line[i] == "t":
-                    self._tokens.append(Token.INT)
-                    i=i+1
+                  substring = "nt"
+                  for letter in substring:
+                    if i == len(line) or line[i] != letter:
+                        self._tokens.append(Token.INVALID)
+                        break
+                    else:
+                       i = i+1
+                  # break out of outer loop if 'int' wasn't found, otherwise add int token to array
+                  if len(self._tokens) > 0 and self._tokens[-1] == Token.INVALID:
+                     break
+                  # make sure next token is either a whitespace or end of line, otherwise token is invalid
                   else:
-                    self._tokens.append(Token.INVALID)
-                    break
+                    if i == len(line) or not (line[i].isalnum()):
+                        self._tokens.append(Token.INT)
+                    else:
+                        self._tokens.append(Token.INVALID)
+                        break
+
                elif i<len(line) and line[i] == "f":
-                  self._tokens.append(Token.IF)
-                  i=i+1
+                  substring = "f"
+                  for letter in substring:
+                    if i == len(line) or line[i] != letter:
+                        self._tokens.append(Token.INVALID)
+                        break
+                    else:
+                       i = i+1
+                  # break out of outer loop if 'if' wasn't found, otherwise add if token to array
+                  if len(self._tokens) > 0 and self._tokens[-1] == Token.INVALID:
+                     break
+                  # make sure next token is either a whitespace or end of line, otherwise token is invalid
+                  else:
+                    if i == len(line) or not (line[i].isalnum()):
+                        self._tokens.append(Token.IF)
+                    else:
+                        self._tokens.append(Token.INVALID)
+                        break
                else:
                   self._tokens.append(Token.INVALID)
                   break
@@ -330,7 +397,6 @@ class Scanner:
                    substring = "lse"
                    for letter in substring:
                     if i == len(line) or line[i] != letter:
-                        
                         self._tokens.append(Token.INVALID)
                         break
                     else:
@@ -338,34 +404,44 @@ class Scanner:
                   # break out of outer loop if 'else' wasn't found, otherwise add else token to array
                    if (len(self._tokens) > 0) and self._tokens[-1] == Token.INVALID:
                      break
+                   # make sure next token is either a whitespace or end of line, otherwise token is invalid
                    else:
-                     self._tokens.append(Token.ELSE)
+                    if i == len(line) or not (line[i].isalnum()):
+                        self._tokens.append(Token.ELSE)
+                    else:
+                        self._tokens.append(Token.INVALID)
+                        break
 
                elif i<len(line) and line[i] == "n":
-                  i=i+1
-                  if i < len(line) and line[i] == "d":
-                    self._tokens.append(Token.END)
-                    i = i+1
-                  else:
-                    self._tokens.append(Token.INVALID)
+                  substring = "nd"
+                  for letter in substring:
+                    if i == len(line) or line[i] != letter:
+                        self._tokens.append(Token.INVALID)
+                        break
+                    else:
+                       i = i+1
+                  # break out of outer loop if 'end' wasn't found, otherwise add end token to array
+                  if (len(self._tokens) > 0) and self._tokens[-1] == Token.INVALID:
                     break
+                  # make sure next token after keyword is either a whitespace or the end of the line, otherwise the token is invalid
+                  else:
+                    if i == len(line) or not(line[i].isalnum()):
+                        self._tokens.append(Token.END)
+                    else:
+                       self._tokens.append(Token.INVALID)
+                       break
 
                else:
                   self._tokens.append(Token.INVALID)
                   break
-           # if no matching tokens found, then this is an invalid token
+               
+
+           # if no matching tokens found, then currChar represents an invalid token
             else: 
                self._tokens.append(Token.INVALID)
                break
 
 
-               
-                     
-
-               
-                
-               
-         
     # Moves cursor to next token in tokens array, unless the current token being pointed at
     # by cursor is 33 (EOF) or 34 (illegal token), in which the cursor is not moved. 
     # If advancing the cursor forward puts it past the last index of the tokens array, the next line from the file is 
@@ -384,7 +460,11 @@ class Scanner:
     # If the current token is not an integer, program will exit.
     def intVal(self):
        if self.getToken() == 31:
-          return self.actual_values[self._cursor]
+          # get token from actual_values and check if it has leading zeros, truncating them as necessary
+          intToken = self.actual_values[self._cursor]
+          while (intToken[0]=='0'):
+             intToken = intToken[1:] 
+          return int(intToken)
        else:
           print("ERROR: current token is not an integer. Terminating program...")
           sys.exit(1)

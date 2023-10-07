@@ -1,9 +1,0 @@
-program int XYZ, ABC;
-   begin read XYZ; read ABC;
-         write ABC; write XYZ;
-   end
-if(X+Y)then
-if ( X + Y ) then; begin 
-while [Z*B]; ABC123
-; 12345
-
